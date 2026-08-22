@@ -50,35 +50,6 @@ The original Expo starter scaffold was moved to `example/` by
 `npm run reset-project` for reference and can be deleted once you're no
 longer using it as a comparison.
 
-## Bundle IDs
-
-Locked in `app.json`:
-
-- iOS `bundleIdentifier`: `com.bervazq.adhdreset`
-- Android `package`: `com.bervazq.adhdreset`
-
-Do not change these after creating the RevenueCat project or App Store
-Connect / Play Console listings — in-app purchase products are tied to the
-bundle ID permanently.
-
-## RevenueCat setup (required before a real build)
-
-1. Create a RevenueCat project called `adhd-reset-board`.
-2. Add one iOS app (bundle ID `com.bervazq.adhdreset`) and one Android app
-   (package `com.bervazq.adhdreset`).
-3. Create one entitlement: `premium_reset`.
-4. Create one subscription product per store (e.g. `reset_premium_monthly`
-   at $2.99/mo) and attach both to the `premium_reset` entitlement under one
-   Offering with a `monthly` package.
-5. Set the API keys as env vars (see `.env.example` — copy to `.env.local`
-   or configure in EAS secrets) instead of hardcoding them in
-   `src/revenuecat/premiumGate.ts`:
-   - `EXPO_PUBLIC_RC_APPLE_KEY`
-   - `EXPO_PUBLIC_RC_GOOGLE_KEY`
-
-The code fails open: if RevenueCat is unreachable, `hasPremium()` returns
-`false` instead of crashing/blocking the app.
-
 ## Fonts
 
 JetBrains Mono (OFL-licensed) is bundled in `assets/fonts/` and loaded in
