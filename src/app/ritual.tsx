@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { COLORS } from "../ui/theme";
 import { TerminalText } from "../ui/components/TerminalText";
 import { useSession } from "../state/SessionContext";
-import { hasPremium } from "../revenuecat/premiumGate";
+import { usePurchases } from "../state/PurchasesContext";
 
 // Premium ritual sounds live in assets/audio/. Drop .mp3 files there and wire
 // them up with expo-audio's useAudioPlayer(require("../../assets/audio/xyz.mp3"))
@@ -24,11 +24,10 @@ const ASCII_BANNER = String.raw`
 export default function RitualScreen() {
   const router = useRouter();
   const { session } = useSession();
-  const [premium, setPremium] = useState(false);
+  const { isPro: premium } = usePurchases();
 
   useEffect(() => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    hasPremium().then(setPremium);
   }, []);
 
   return (

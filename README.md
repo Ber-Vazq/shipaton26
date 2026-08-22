@@ -35,8 +35,13 @@ src/
 ├── model/types.ts        # Task, Step, ResetSession — all TS types
 ├── engine/resetLoop.ts   # Pure logic: random picker, timer tick, momentum
 ├── storage/store.ts      # AsyncStorage read/write wrappers
-├── state/SessionContext.tsx # React context wiring engine + storage to screens
-├── revenuecat/premiumGate.ts # RC init, hasPremium(), purchase()
+├── state/SessionContext.tsx  # React context wiring engine + storage to screens
+├── state/PurchasesContext.tsx # Reactive CustomerInfo/isPro state, app-wide
+├── revenuecat/
+│   ├── premiumGate.ts    # RC init, getCustomerInfo(), purchasePackage(),
+│   │                     # restorePurchases(), offering/package accessors
+│   └── paywallUI.ts      # presentPaywall(), presentPaywallIfNeeded(),
+│                          # presentCustomerCenter() (react-native-purchases-ui)
 └── ui/
     ├── theme.ts          # Color palette, font name constants
     └── components/       # TerminalText, AsciiCheckbox, HashProgressBar,
@@ -63,6 +68,35 @@ effects with `expo-audio`'s `useAudioPlayer()` once `.mp3` assets are added
 to `assets/audio/`. Left unwired intentionally so an empty asset folder
 doesn't break the Metro bundle.
 
+## Subscriptions (RevenueCat)
+
+This app gates premium features behind the RevenueCat entitlement
+`adhd_reset_board_pro`, sold as three packages in one Offering:
+
+| Package  | RevenueCat identifier | Store product type                          |
+|----------|------------------------|----------------------------------------------|
+| Monthly  | `$rc_monthly`          | Auto-renewing subscription                    |
+| Annual   | `$rc_annual`           | Auto-renewing subscription (same group as monthly on iOS) |
+| Lifetime | `$rc_lifetime`         | Non-consumable in-app purchase                |
+
+Using RevenueCat's reserved package identifiers means the code in
+`src/revenuecat/premiumGate.ts` (`offering.monthly` / `.annual` / `.lifetime`)
+keeps working no matter what you name the underlying store products.
+
+**Setup**
+1. Copy `.env.example` to `.env.local` and set `EXPO_PUBLIC_RC_APPLE_KEY` /
+   `EXPO_PUBLIC_RC_GOOGLE_KEY` to your RevenueCat public API keys (falls back
+   to a shared test key for local development if unset).
+2. In the RevenueCat dashboard: create the `adhd_reset_board_pro`
+   entitlement, attach the three packages above to one Offering, mark it
+   "current", and design a Paywall for it under **Paywalls**.
+3. `Purchases.configure()` runs once at app start in `src/app/_layout.tsx`.
+   `src/state/PurchasesContext.tsx` (`usePurchases()`) keeps `customerInfo`
+   and `isPro` reactive app-wide via `addCustomerInfoUpdateListener`.
+4. `src/app/paywall.tsx` calls `presentPaywall()` (RevenueCat-hosted paywall
+   UI) to sell, and `presentCustomerCenter()` to let existing subscribers
+   manage/cancel/restore — no custom subscription-management UI needed.
+
 ## EAS builds
 
 ```bash
@@ -80,14 +114,17 @@ Apple Developer / Google Play credentials.
 **Google Play**
 - New app in Play Console (brand-new listing, not an update)
 - Upload `.aab` to Internal Testing track first
-- Create `reset_premium_monthly` subscription in Play Console → Monetize
+- Create the monthly + annual subscriptions in Play Console → Monetize →
+  Subscriptions, and the lifetime product under Monetize → Products →
+  In-app products (non-consumable, NOT a subscription)
 - Complete Data Safety form (declare RevenueCat purchase data)
 - Add yourself as license tester, verify sandbox purchase, promote to
   Production
 
 **App Store**
 - New app in App Store Connect with bundle ID `com.bervazq.adhdreset`
-- Create the subscription product in App Store Connect → Subscriptions
+- Create monthly + annual in the same Subscription Group in App Store
+  Connect → Subscriptions, and lifetime as a separate non-consumable IAP
 - Upload `.ipa` via `eas submit --platform ios` or Transporter
 - Add a sandbox tester, complete the App Privacy questionnaire, submit
 

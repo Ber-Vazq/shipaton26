@@ -3,7 +3,9 @@ import { Alert, Pressable, StyleSheet, View } from "react-native";
 import { useRouter } from "expo-router";
 import { COLORS } from "../ui/theme";
 import { TerminalText } from "../ui/components/TerminalText";
-import { purchasePremium, restorePurchases } from "../revenuecat/premiumGate";
+import { usePurchases } from "../state/PurchasesContext";
+import { restorePurchases } from "../revenuecat/premiumGate";
+import { presentCustomerCenter, presentPaywall } from "../revenuecat/paywallUI";
 
 const FEATURES = [
   "extra ritual sounds + animations",
@@ -14,18 +16,22 @@ const FEATURES = [
 
 export default function PaywallScreen() {
   const router = useRouter();
+  const { isPro, loading, refresh } = usePurchases();
   const [busy, setBusy] = useState(false);
 
-  const handleSubscribe = async () => {
+  const handleUnlock = async () => {
     setBusy(true);
     try {
-      const purchased = await purchasePremium();
-      if (purchased) {
+      // Presents the RevenueCat-hosted paywall configured in the dashboard
+      // for the current offering (monthly / annual / lifetime packages).
+      const unlocked = await presentPaywall();
+      await refresh();
+      if (unlocked) {
         Alert.alert("premium unlocked", "thanks for supporting the app_");
         router.back();
       }
     } catch (e: any) {
-      Alert.alert("purchase failed", e?.message ?? "something went wrong");
+      Alert.alert("couldn't open paywall", e?.message ?? "something went wrong");
     } finally {
       setBusy(false);
     }
@@ -34,12 +40,28 @@ export default function PaywallScreen() {
   const handleRestore = async () => {
     setBusy(true);
     try {
-      const restored = await restorePurchases();
-      Alert.alert(
-        restored ? "restored" : "nothing to restore",
-        restored ? "premium is active_" : "no previous purchase found"
-      );
-      if (restored) router.back();
+      const result = await restorePurchases();
+      await refresh();
+      if (result.status === "restored") {
+        Alert.alert("restored", "premium is active_");
+        router.back();
+      } else if (result.status === "nothing_to_restore") {
+        Alert.alert("nothing to restore", "no previous purchase found");
+      } else {
+        Alert.alert("restore failed", result.message);
+      }
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleManage = async () => {
+    setBusy(true);
+    try {
+      await presentCustomerCenter();
+      await refresh();
+    } catch (e: any) {
+      Alert.alert("customer center unavailable", e?.message ?? "try again later");
     } finally {
       setBusy(false);
     }
@@ -55,28 +77,43 @@ export default function PaywallScreen() {
         premium_reset
       </TerminalText>
 
-      <View style={styles.featureList}>
-        {FEATURES.map((f) => (
-          <TerminalText key={f} variant="body" style={styles.featureRow}>
-            {"[+] "}
-            {f}
+      {loading ? (
+        <TerminalText variant="muted">checking status_</TerminalText>
+      ) : isPro ? (
+        <>
+          <TerminalText variant="accent">[x] pro unlocked</TerminalText>
+          <Pressable style={styles.subscribeButton} onPress={handleManage} disabled={busy}>
+            <TerminalText variant="bright">
+              {busy ? "opening_" : "> manage_subscription"}
+            </TerminalText>
+          </Pressable>
+        </>
+      ) : (
+        <>
+          <View style={styles.featureList}>
+            {FEATURES.map((f) => (
+              <TerminalText key={f} variant="body" style={styles.featureRow}>
+                {"[+] "}
+                {f}
+              </TerminalText>
+            ))}
+          </View>
+
+          <TerminalText variant="muted" style={styles.plansNote}>
+            monthly / annual / lifetime — pick on the next screen
           </TerminalText>
-        ))}
-      </View>
 
-      <TerminalText variant="accent" style={styles.price}>
-        $2.99/mo
-      </TerminalText>
+          <Pressable style={styles.subscribeButton} onPress={handleUnlock} disabled={busy}>
+            <TerminalText variant="bright">
+              {busy ? "processing_" : "> unlock_premium"}
+            </TerminalText>
+          </Pressable>
 
-      <Pressable style={styles.subscribeButton} onPress={handleSubscribe} disabled={busy}>
-        <TerminalText variant="bright">
-          {busy ? "processing_" : "> subscribe"}
-        </TerminalText>
-      </Pressable>
-
-      <Pressable style={styles.restoreButton} onPress={handleRestore} disabled={busy}>
-        <TerminalText variant="muted">restore purchases</TerminalText>
-      </Pressable>
+          <Pressable style={styles.restoreButton} onPress={handleRestore} disabled={busy}>
+            <TerminalText variant="muted">restore purchases</TerminalText>
+          </Pressable>
+        </>
+      )}
     </View>
   );
 }
@@ -96,9 +133,8 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   featureRow: {},
-  price: {
-    fontSize: 28,
-    marginTop: 8,
+  plansNote: {
+    marginTop: -8,
   },
   subscribeButton: {
     borderWidth: 1,
