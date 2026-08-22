@@ -1,98 +1,134 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useCallback } from "react";
+import { FlatList, Pressable, StyleSheet, View } from "react-native";
+import { useRouter } from "expo-router";
+import * as Haptics from "expo-haptics";
+import { COLORS } from "../ui/theme";
+import { TerminalText } from "../ui/components/TerminalText";
+import { HashProgressBar } from "../ui/components/HashProgressBar";
+import { BlinkingCursor } from "../ui/components/BlinkingCursor";
+import { useSession } from "../state/SessionContext";
+import { pickRandomTask } from "../engine/resetLoop";
+import type { Task } from "../model/types";
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
-
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
-  return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
-  );
+function taskProgress(task: Task): number {
+  if (task.steps.length === 0) return 0;
+  return task.steps.filter((s) => s.done).length / task.steps.length;
 }
 
-export default function HomeScreen() {
+export default function Home() {
+  const router = useRouter();
+  const { ready, session, tasks, setSession } = useSession();
+
+  const openTask = useCallback(
+    (task: Task) => {
+      setSession((prev) => ({ ...prev, activeTask: task }));
+      router.push(`/steps/${task.id}`);
+    },
+    [router, setSession]
+  );
+
+  const handleRandomPick = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    const updated = pickRandomTask(tasks, session);
+    setSession(updated);
+    if (updated.activeTask) {
+      router.push(`/steps/${updated.activeTask.id}`);
+    }
+  }, [tasks, session, setSession, router]);
+
+  if (!ready) {
+    return (
+      <View style={styles.center}>
+        <TerminalText variant="accent">loading_</TerminalText>
+      </View>
+    );
+  }
+
+  const openTasks = tasks.filter((t) => t.steps.some((s) => !s.done));
+  const topThree = openTasks.slice(0, 3);
+
   return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
+    <View style={styles.screen}>
+      <View style={styles.header}>
+        <TerminalText variant="heading">RESET_BOARD</TerminalText>
+        <TerminalText variant="muted">momentum: {session.momentum}</TerminalText>
+      </View>
 
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
+      <Pressable style={styles.randomButton} onPress={handleRandomPick} hitSlop={8}>
+        <TerminalText variant="bright" style={styles.randomLabel}>
+          {"> "}pick_something<BlinkingCursor />
+        </TerminalText>
+      </Pressable>
 
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
+      <TerminalText variant="muted" style={styles.sectionLabel}>
+        // open tasks
+      </TerminalText>
 
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
+      {topThree.length === 0 ? (
+        <TerminalText variant="muted">nothing queued — add a task to begin</TerminalText>
+      ) : (
+        <FlatList
+          data={topThree}
+          keyExtractor={(t) => t.id}
+          contentContainerStyle={styles.list}
+          renderItem={({ item, index }) => (
+            <Pressable style={styles.card} onPress={() => openTask(item)}>
+              <TerminalText variant="accent">[{index + 1}] {item.title}</TerminalText>
+              <HashProgressBar progress={taskProgress(item)} />
+            </Pressable>
+          )}
+        />
+      )}
+
+      <Pressable style={styles.paywallLink} onPress={() => router.push("/paywall")}>
+        <TerminalText variant="muted">premium features →</TerminalText>
+      </Pressable>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
+    backgroundColor: COLORS.bg,
+    padding: 20,
+    paddingTop: 60,
   },
-  safeArea: {
+  center: {
     flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
+    backgroundColor: COLORS.bg,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
+  header: {
+    marginBottom: 24,
+    gap: 4,
   },
-  title: {
-    textAlign: 'center',
+  randomButton: {
+    borderWidth: 1,
+    borderColor: COLORS.accent,
+    borderRadius: 4,
+    paddingVertical: 16,
+    alignItems: "center",
+    marginBottom: 28,
   },
-  code: {
-    textTransform: 'uppercase',
+  randomLabel: {
+    color: COLORS.accent,
   },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
+  sectionLabel: {
+    marginBottom: 8,
+  },
+  list: {
+    gap: 12,
+  },
+  card: {
+    backgroundColor: COLORS.dim,
+    borderRadius: 4,
+    padding: 14,
+    gap: 8,
+  },
+  paywallLink: {
+    marginTop: 16,
+    alignSelf: "center",
   },
 });

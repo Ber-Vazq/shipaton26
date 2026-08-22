@@ -1,18 +1,38 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { useColorScheme } from 'react-native';
+import { useEffect, useState } from "react";
+import { Stack } from "expo-router";
+import * as Font from "expo-font";
+import { StatusBar } from "expo-status-bar";
+import { COLORS } from "../ui/theme";
+import { ScanlineOverlay } from "../ui/components/ScanlineOverlay";
+import { SessionProvider } from "../state/SessionContext";
+import { initPurchases } from "../revenuecat/premiumGate";
 
-import { AnimatedSplashOverlay } from '@/components/animated-icon';
-import AppTabs from '@/components/app-tabs';
+export default function RootLayout() {
+  const [fontsLoaded, setFontsLoaded] = useState(false);
 
-SplashScreen.preventAutoHideAsync();
+  useEffect(() => {
+    Font.loadAsync({
+      JetBrainsMono: require("../../assets/fonts/JetBrainsMono-Regular.ttf"),
+      JetBrainsMonoBold: require("../../assets/fonts/JetBrainsMono-Bold.ttf"),
+    })
+      .then(() => setFontsLoaded(true))
+      .catch(() => setFontsLoaded(true)); // fail open — don't block the app on a font load error
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
+    initPurchases();
+  }, []);
+
+  if (!fontsLoaded) return null;
+
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <AnimatedSplashOverlay />
-      <AppTabs />
-    </ThemeProvider>
+    <SessionProvider>
+      <StatusBar style="light" />
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: COLORS.bg },
+        }}
+      />
+      <ScanlineOverlay />
+    </SessionProvider>
   );
 }
