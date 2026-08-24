@@ -60,12 +60,17 @@ export default function Home() {
         </TerminalText>
       </Pressable>
 
-      <TerminalText variant="muted" style={styles.sectionLabel}>
-        // open tasks
-      </TerminalText>
+      <View style={styles.sectionHeader}>
+        <TerminalText variant="muted">// open tasks</TerminalText>
+        <Pressable onPress={() => router.push("/new-task")} hitSlop={8}>
+          <TerminalText variant="accent">{"+ "}new_task</TerminalText>
+        </Pressable>
+      </View>
 
       {topThree.length === 0 ? (
-        <TerminalText variant="muted">nothing queued — add a task to begin</TerminalText>
+        <Pressable onPress={() => router.push("/new-task")}>
+          <TerminalText variant="muted">nothing queued — tap to add a task</TerminalText>
+        </Pressable>
       ) : (
         <FlatList
           data={topThree}
@@ -128,7 +133,10 @@ const styles = StyleSheet.create({
   randomLabel: {
     color: COLORS.accent,
   },
-  sectionLabel: {
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 8,
   },
   list: {

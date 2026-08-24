@@ -1,7 +1,7 @@
 import { Text, type TextProps, type TextStyle } from "react-native";
 import { COLORS, FONT } from "../theme";
 
-type Variant = "body" | "bright" | "muted" | "accent" | "heading" | "timer";
+type Variant = "body" | "bright" | "muted" | "accent" | "heading" | "timer" | "danger";
 
 const VARIANT_STYLE: Record<Variant, TextStyle> = {
   body: { color: COLORS.text, fontSize: FONT.size.md },
@@ -10,6 +10,7 @@ const VARIANT_STYLE: Record<Variant, TextStyle> = {
   accent: { color: COLORS.accent, fontSize: FONT.size.md },
   heading: { color: COLORS.accent, fontSize: FONT.size.xl },
   timer: { color: COLORS.accent, fontSize: FONT.size.timer },
+  danger: { color: COLORS.danger, fontSize: FONT.size.md },
 };
 
 const BOLD_VARIANTS: Variant[] = ["heading", "timer"];
