@@ -83,6 +83,19 @@ export default function Home() {
       <Pressable style={styles.paywallLink} onPress={() => router.push("/paywall")}>
         <TerminalText variant="muted">premium features →</TerminalText>
       </Pressable>
+
+      <View style={styles.legalRow}>
+        <Pressable onPress={() => router.push("/privacy")} hitSlop={8}>
+          <TerminalText variant="muted" style={styles.legalLink}>
+            privacy policy
+          </TerminalText>
+        </Pressable>
+        <Pressable onPress={() => router.push("/terms")} hitSlop={8}>
+          <TerminalText variant="muted" style={styles.legalLink}>
+            terms of service
+          </TerminalText>
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -130,5 +143,15 @@ const styles = StyleSheet.create({
   paywallLink: {
     marginTop: 16,
     alignSelf: "center",
+  },
+  legalRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 16,
+    marginTop: 12,
+  },
+  legalLink: {
+    fontSize: 11,
+    textDecorationLine: "underline",
   },
 });

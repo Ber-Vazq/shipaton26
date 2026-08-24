@@ -114,6 +114,19 @@ export default function PaywallScreen() {
           </Pressable>
         </>
       )}
+
+      <View style={styles.legalRow}>
+        <Pressable onPress={() => router.push("/privacy")} hitSlop={8}>
+          <TerminalText variant="muted" style={styles.legalLink}>
+            privacy policy
+          </TerminalText>
+        </Pressable>
+        <Pressable onPress={() => router.push("/terms")} hitSlop={8}>
+          <TerminalText variant="muted" style={styles.legalLink}>
+            terms of service
+          </TerminalText>
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -146,5 +159,16 @@ const styles = StyleSheet.create({
   },
   restoreButton: {
     alignItems: "center",
+  },
+  legalRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 16,
+    marginTop: "auto",
+    paddingTop: 20,
+  },
+  legalLink: {
+    fontSize: 11,
+    textDecorationLine: "underline",
   },
 });
