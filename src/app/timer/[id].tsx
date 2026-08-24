@@ -1,12 +1,15 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { COLORS } from "../../ui/theme";
 import { TerminalText } from "../../ui/components/TerminalText";
 import { HashProgressBar } from "../../ui/components/HashProgressBar";
+import { AsciiCheckbox } from "../../ui/components/AsciiCheckbox";
 import { useSession } from "../../state/SessionContext";
 import {
+  completeStep,
+  isTaskComplete,
   pauseTimer,
   resetTimer,
   resumeTimer,
@@ -27,10 +30,30 @@ function formatTime(totalSeconds: number): string {
 export default function TimerScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const { session, setSession } = useSession();
+  const { session, setSession, tasks, setTasks } = useSession();
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const task = session.activeTask?.id === id ? session.activeTask : null;
+  const liveTask = useMemo(() => tasks.find((t) => t.id === id) ?? task, [tasks, id, task]);
+
+  // Auto-start: entering this screen with a fresh (idle) timer should start
+  // counting down immediately — no manual "start" tap required. Only fires
+  // once per mount, and only if the timer hasn't already been started/
+  // paused/completed (e.g. navigating back into an in-progress timer won't
+  // restart it from scratch).
+  useEffect(() => {
+    // "idle" = never started; "complete" = leftover from a previous task's
+    // finished run (session state is shared, not per-task) — both mean
+    // there's no timer actually in flight for this task, so it's safe to
+    // auto-start fresh. Leave "running"/"paused" alone so backing out and
+    // returning to an in-progress timer doesn't restart it.
+    setSession((prev) =>
+      prev.timerState === "idle" || prev.timerState === "complete"
+        ? startTimer(prev.timerSeconds, prev)
+        : prev
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (session.timerState === "running") {
@@ -78,6 +101,15 @@ export default function TimerScreen() {
     }
   };
 
+  const toggleStep = useCallback(
+    (stepId: string) => {
+      if (!liveTask) return;
+      const updated = completeStep(liveTask, stepId);
+      setTasks((prev) => prev.map((t) => (t.id === liveTask.id ? updated : t)));
+    },
+    [liveTask, setTasks]
+  );
+
   const primaryLabel =
     session.timerState === "running"
       ? "> pause"
@@ -85,17 +117,15 @@ export default function TimerScreen() {
         ? "> resume"
         : "> start";
 
+  const stepsDone = liveTask ? liveTask.steps.filter((s) => s.done).length : 0;
+  const stepsProgress = liveTask && liveTask.steps.length > 0 ? stepsDone / liveTask.steps.length : 0;
+  const allStepsDone = liveTask ? isTaskComplete(liveTask) : false;
+
   return (
     <View style={styles.screen}>
       <Pressable onPress={() => router.back()} hitSlop={8}>
         <TerminalText variant="muted">{"< back"}</TerminalText>
       </Pressable>
-
-      {task && (
-        <TerminalText variant="muted" style={styles.taskLabel}>
-          {task.title}
-        </TerminalText>
-      )}
 
       <View style={styles.timerWrap}>
         <TerminalText variant="timer">{formatTime(session.remainingSeconds)}</TerminalText>
@@ -127,6 +157,33 @@ export default function TimerScreen() {
           <TerminalText variant="muted">reset</TerminalText>
         </Pressable>
       )}
+
+      {liveTask && (
+        <View style={styles.taskSection}>
+          <TerminalText variant="bright" style={styles.taskTitle}>
+            {liveTask.title}
+          </TerminalText>
+
+          {liveTask.steps.length > 0 && <HashProgressBar progress={stepsProgress} />}
+
+          <View style={styles.stepsWrap}>
+            {liveTask.steps.map((step) => (
+              <AsciiCheckbox
+                key={step.id}
+                label={step.label}
+                done={step.done}
+                onToggle={() => toggleStep(step.id)}
+              />
+            ))}
+          </View>
+
+          {allStepsDone && (
+            <TerminalText variant="accent" style={styles.allDoneNote}>
+              [x] all steps done
+            </TerminalText>
+          )}
+        </View>
+      )}
     </View>
   );
 }
@@ -140,11 +197,8 @@ const styles = StyleSheet.create({
     gap: 20,
     alignItems: "center",
   },
-  taskLabel: {
-    alignSelf: "flex-start",
-  },
   timerWrap: {
-    marginTop: 40,
+    marginTop: 24,
     marginBottom: 8,
   },
   durationRow: {
@@ -163,9 +217,23 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 40,
     alignItems: "center",
-    marginTop: 20,
   },
   resetButton: {
-    marginTop: 4,
+    marginTop: -8,
+  },
+  taskSection: {
+    width: "100%",
+    marginTop: 12,
+    gap: 12,
+    alignItems: "flex-start",
+  },
+  taskTitle: {
+    alignSelf: "flex-start",
+  },
+  stepsWrap: {
+    width: "100%",
+  },
+  allDoneNote: {
+    alignSelf: "flex-start",
   },
 });
