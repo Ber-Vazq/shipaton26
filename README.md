@@ -96,6 +96,18 @@ keeps working no matter what you name the underlying store products.
 4. `src/app/paywall.tsx` calls `presentPaywall()` (RevenueCat-hosted paywall
    UI) to sell, and `presentCustomerCenter()` to let existing subscribers
    manage/cancel/restore — no custom subscription-management UI needed.
+5. Custom fonts (e.g. JetBrains Mono) in the Paywall Editor: upload every
+   weight you plan to use via the font-family gear icon on a text component
+   — the editor only offers weights you've actually uploaded for that
+   family, so a "not in custom font family" error usually means a weight
+   (e.g. Bold) is selected but wasn't uploaded yet.
+6. Privacy Policy / Terms of Service links (required by the Paywall
+   Editor and recommended for app review): set the footer link fields to
+   `https://adhd-reset-legal.vercel.app/privacy.html` and
+   `https://adhd-reset-legal.vercel.app/terms.html`. The same copy is also
+   rendered in-app at `src/app/privacy.tsx` / `src/app/terms.tsx` (source
+   of truth in `src/legal/content.ts`), linked from the home screen and
+   paywall footers, so it's reachable even without network access.
 
 ## EAS builds
 
