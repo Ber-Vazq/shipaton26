@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Alert, Pressable, StyleSheet, View } from "react-native";
+import { Alert, Platform, Pressable, StyleSheet, View } from "react-native";
 import { useRouter } from "expo-router";
 import { COLORS } from "../ui/theme";
 import { TerminalText } from "../ui/components/TerminalText";
@@ -82,11 +82,18 @@ export default function PaywallScreen() {
       ) : isPro ? (
         <>
           <TerminalText variant="accent">[x] pro unlocked</TerminalText>
-          <Pressable style={styles.subscribeButton} onPress={handleManage} disabled={busy}>
-            <TerminalText variant="bright">
-              {busy ? "opening_" : "> manage_subscription"}
+          {Platform.OS === "web" ? (
+            <TerminalText variant="muted">
+              subscription management (Customer Center) is native-only — use a
+              real device build to manage or cancel.
             </TerminalText>
-          </Pressable>
+          ) : (
+            <Pressable style={styles.subscribeButton} onPress={handleManage} disabled={busy}>
+              <TerminalText variant="bright">
+                {busy ? "opening_" : "> manage_subscription"}
+              </TerminalText>
+            </Pressable>
+          )}
         </>
       ) : (
         <>
@@ -103,15 +110,31 @@ export default function PaywallScreen() {
             monthly / annual / lifetime — pick on the next screen
           </TerminalText>
 
-          <Pressable style={styles.subscribeButton} onPress={handleUnlock} disabled={busy}>
-            <TerminalText variant="bright">
-              {busy ? "processing_" : "> unlock_premium"}
-            </TerminalText>
-          </Pressable>
+          {Platform.OS === "web" ? (
+            <View style={styles.webNotice}>
+              <TerminalText variant="muted">
+                the real RevenueCat paywall only renders on a native iOS/Android
+                build — Expo web (and Expo Go) can't load the purchases SDK's
+                native module, so there's nothing to show here in this preview.
+              </TerminalText>
+              <TerminalText variant="muted" style={styles.webNoticeSpacer}>
+                run an EAS development build and open it on a device or
+                simulator to see and test the actual paywall.
+              </TerminalText>
+            </View>
+          ) : (
+            <>
+              <Pressable style={styles.subscribeButton} onPress={handleUnlock} disabled={busy}>
+                <TerminalText variant="bright">
+                  {busy ? "processing_" : "> unlock_premium"}
+                </TerminalText>
+              </Pressable>
 
-          <Pressable style={styles.restoreButton} onPress={handleRestore} disabled={busy}>
-            <TerminalText variant="muted">restore purchases</TerminalText>
-          </Pressable>
+              <Pressable style={styles.restoreButton} onPress={handleRestore} disabled={busy}>
+                <TerminalText variant="muted">restore purchases</TerminalText>
+              </Pressable>
+            </>
+          )}
         </>
       )}
 
@@ -148,6 +171,16 @@ const styles = StyleSheet.create({
   featureRow: {},
   plansNote: {
     marginTop: -8,
+  },
+  webNotice: {
+    gap: 8,
+    borderWidth: 1,
+    borderColor: COLORS.muted,
+    borderRadius: 4,
+    padding: 14,
+  },
+  webNoticeSpacer: {
+    marginTop: 2,
   },
   subscribeButton: {
     borderWidth: 1,
