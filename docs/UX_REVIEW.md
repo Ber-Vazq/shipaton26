@@ -96,3 +96,5 @@ In `new-task.tsx`, `removeButton` was `{ padding: 4 }` around a small glyph with
 | 10 | No defensive fallback if AsyncStorage read/write throws | Error states | Nice-to-have | Open (backlog) |
 
 **Status after this pass:** all blockers (#1, #2, #6) and all fixable should-fixes (#3, #4) are resolved in code. The remaining should-fix (#5) requires a physical device with a screen reader active and cannot be closed out through static review — flagging it explicitly as a pre-submission task rather than silently dropping it. Nice-to-haves (#7-#10) are backlog and do not block submission.
+
+**Post-review addendum:** the ritual-completion sound was a stub (upsell copy only, no audio wired up) at the time of this review — not included in the numbered findings above since it was an unfinished feature, not a defect. It has since been implemented: `correct-answer` (confirm_ping) plays free/by default for every user, and the other 8 provided sounds are premium-unlockable via an in-terminal picker on the ritual screen, gated the same way as everything else behind `usePurchases().isPro`. See `src/model/sounds.ts` and `src/app/ritual.tsx`.
