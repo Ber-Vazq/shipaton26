@@ -113,7 +113,7 @@ export default function NewTaskScreen() {
             {steps.length > 1 && (
               <Pressable
                 onPress={() => removeStep(index)}
-                hitSlop={8}
+                hitSlop={16}
                 style={styles.removeButton}
                 accessibilityRole="button"
                 accessibilityLabel={`Remove step ${index + 1}`}
@@ -184,6 +184,10 @@ const styles = StyleSheet.create({
   },
   removeButton: {
     padding: 4,
+    minWidth: 32,
+    minHeight: 32,
+    alignItems: "center",
+    justifyContent: "center",
   },
   addStepButton: {
     marginTop: 4,

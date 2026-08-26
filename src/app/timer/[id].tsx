@@ -42,16 +42,25 @@ export default function TimerScreen() {
   // paused/completed (e.g. navigating back into an in-progress timer won't
   // restart it from scratch).
   useEffect(() => {
-    // "idle" = never started; "complete" = leftover from a previous task's
-    // finished run (session state is shared, not per-task) — both mean
-    // there's no timer actually in flight for this task, so it's safe to
-    // auto-start fresh. Leave "running"/"paused" alone so backing out and
-    // returning to an in-progress timer doesn't restart it.
-    setSession((prev) =>
-      prev.timerState === "idle" || prev.timerState === "complete"
+    // Session/timer state is shared across the whole app rather than keyed
+    // per task. Without this guard, opening Task B's timer while Task A's
+    // timer is still "running"/"paused" would show Task B's title and steps
+    // but keep counting down Task A's leftover time — pausing/resuming/
+    // resetting "Task B's timer" would actually be operating on Task A's.
+    // So: whenever the task we're viewing differs from the one the shared
+    // session last tracked, force a fresh timer for *this* task. Only when
+    // it's the same task do we fall back to the idle/complete check, so
+    // backing out and returning to an in-progress timer for that same task
+    // doesn't restart it from scratch.
+    setSession((prev) => {
+      const isDifferentTask = prev.activeTask?.id !== id;
+      if (isDifferentTask) {
+        return startTimer(prev.timerSeconds, { ...prev, activeTask: liveTask ?? prev.activeTask });
+      }
+      return prev.timerState === "idle" || prev.timerState === "complete"
         ? startTimer(prev.timerSeconds, prev)
-        : prev
-    );
+        : prev;
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

@@ -78,6 +78,12 @@ export default function Home() {
         </Pressable>
       </View>
 
+      {openTasks.length > topThree.length && (
+        <TerminalText variant="muted" style={styles.hiddenTasksNote}>
+          showing {topThree.length} of {openTasks.length} — pick_something surfaces the rest
+        </TerminalText>
+      )}
+
       {topThree.length === 0 ? (
         <Pressable
           onPress={() => router.push("/new-task")}
@@ -196,5 +202,10 @@ const styles = StyleSheet.create({
   legalLink: {
     fontSize: 11,
     textDecorationLine: "underline",
+  },
+  hiddenTasksNote: {
+    fontSize: 11,
+    marginTop: -4,
+    marginBottom: 8,
   },
 });
