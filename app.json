@@ -8,7 +8,6 @@
     "scheme": "adhdresetboard",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon",
       "bundleIdentifier": "com.bervazq.adhdreset",
       "supportsTablet": false
     },
