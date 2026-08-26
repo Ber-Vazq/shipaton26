@@ -67,7 +67,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         loadSession(),
         loadTasks(),
       ]);
-      setSessionState(storedSession ?? DEFAULT_SESSION);
+      // Merge over DEFAULT_SESSION rather than using storedSession as-is, so
+      // fields added after a user's first install (e.g. ritualSoundId) fall
+      // back to a sane default instead of coming back undefined.
+      setSessionState(storedSession ? { ...DEFAULT_SESSION, ...storedSession } : DEFAULT_SESSION);
       const initialTasks = storedTasks.length > 0 ? storedTasks : seedTasks();
       setTasksState(initialTasks);
       if (storedTasks.length === 0) {

@@ -7,9 +7,10 @@ import { usePurchases } from "../state/PurchasesContext";
 import { restorePurchases } from "../revenuecat/premiumGate";
 import { presentCustomerCenter, presentPaywall } from "../revenuecat/paywallUI";
 import { FREE_TASK_LIMIT } from "../model/types";
+import { PREMIUM_RITUAL_SOUNDS } from "../model/sounds";
 
 const FEATURES = [
-  "extra ritual sounds + animations",
+  `${PREMIUM_RITUAL_SOUNDS.length} extra ritual sounds + animations`,
   `unlimited tasks (free tier caps at ${FREE_TASK_LIMIT})`,
   "custom accent colors",
   "support an indie dev directly",
