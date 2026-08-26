@@ -6,11 +6,15 @@ import { COLORS } from "../ui/theme";
 import { TerminalText } from "../ui/components/TerminalText";
 import { TerminalInput } from "../ui/components/TerminalInput";
 import { useSession } from "../state/SessionContext";
+import { usePurchases } from "../state/PurchasesContext";
+import { FREE_TASK_LIMIT } from "../model/types";
 import type { Task } from "../model/types";
 
 export default function NewTaskScreen() {
   const router = useRouter();
-  const { setTasks } = useSession();
+  const { tasks, setTasks } = useSession();
+  const { isPro } = usePurchases();
+  const atFreeLimit = !isPro && tasks.length >= FREE_TASK_LIMIT;
   const [title, setTitle] = useState("");
   const [steps, setSteps] = useState<string[]>([""]);
   const [error, setError] = useState<string | null>(null);
@@ -29,6 +33,11 @@ export default function NewTaskScreen() {
   }, []);
 
   const handleCreate = useCallback(() => {
+    if (!isPro && tasks.length >= FREE_TASK_LIMIT) {
+      setError(`free tier caps at ${FREE_TASK_LIMIT} tasks — unlock premium for unlimited`);
+      return;
+    }
+
     const trimmedTitle = title.trim();
     const cleanSteps = steps.map((s) => s.trim()).filter((s) => s.length > 0);
 
@@ -56,11 +65,16 @@ export default function NewTaskScreen() {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     setTasks((prev) => [...prev, newTask]);
     router.back();
-  }, [title, steps, setTasks, router]);
+  }, [title, steps, setTasks, router, isPro, tasks.length]);
 
   return (
     <View style={styles.screen}>
-      <Pressable onPress={() => router.back()} hitSlop={8}>
+      <Pressable
+        onPress={() => router.back()}
+        hitSlop={8}
+        accessibilityRole="button"
+        accessibilityLabel="Go back"
+      >
         <TerminalText variant="muted">{"< back"}</TerminalText>
       </Pressable>
 
@@ -78,6 +92,7 @@ export default function NewTaskScreen() {
           }}
           placeholder="e.g. Clear the desk"
           autoFocus
+          accessibilityLabel="Task title"
         />
       </View>
 
@@ -93,25 +108,54 @@ export default function NewTaskScreen() {
               }}
               placeholder={`step ${index + 1}`}
               style={styles.stepInput}
+              accessibilityLabel={`Step ${index + 1}`}
             />
             {steps.length > 1 && (
-              <Pressable onPress={() => removeStep(index)} hitSlop={8} style={styles.removeButton}>
+              <Pressable
+                onPress={() => removeStep(index)}
+                hitSlop={8}
+                style={styles.removeButton}
+                accessibilityRole="button"
+                accessibilityLabel={`Remove step ${index + 1}`}
+              >
                 <TerminalText variant="danger">[x]</TerminalText>
               </Pressable>
             )}
           </View>
         ))}
 
-        <Pressable onPress={addStep} style={styles.addStepButton} hitSlop={8}>
+        <Pressable
+          onPress={addStep}
+          style={styles.addStepButton}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel="Add another step"
+        >
           <TerminalText variant="accent">{"+ "}add_step</TerminalText>
         </Pressable>
       </View>
 
       {error && <TerminalText variant="danger">{error}</TerminalText>}
 
-      <Pressable style={styles.createButton} onPress={handleCreate}>
-        <TerminalText variant="bright">{"> "}create_task</TerminalText>
-      </Pressable>
+      {atFreeLimit ? (
+        <Pressable
+          style={styles.createButton}
+          onPress={() => router.push("/paywall")}
+          accessibilityRole="button"
+          accessibilityLabel={`Free tier task limit reached, ${FREE_TASK_LIMIT} tasks maximum. Tap to view premium options.`}
+        >
+          <TerminalText variant="bright">{"> "}unlock_premium ({tasks.length}/{FREE_TASK_LIMIT} used)</TerminalText>
+        </Pressable>
+      ) : (
+        <Pressable
+          style={styles.createButton}
+          onPress={handleCreate}
+          accessibilityRole="button"
+          accessibilityLabel="Create task"
+        >
+          <TerminalText variant="bright">{"> "}create_task</TerminalText>
+        </Pressable>
+      )}
     </View>
   );
 }

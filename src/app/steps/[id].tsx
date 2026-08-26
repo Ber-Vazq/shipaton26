@@ -38,7 +38,12 @@ export default function StepsScreen() {
 
   return (
     <View style={styles.screen}>
-      <Pressable onPress={() => router.back()} hitSlop={8}>
+      <Pressable
+        onPress={() => router.back()}
+        hitSlop={8}
+        accessibilityRole="button"
+        accessibilityLabel="Go back"
+      >
         <TerminalText variant="muted">{"< back"}</TerminalText>
       </Pressable>
 
@@ -63,6 +68,9 @@ export default function StepsScreen() {
         style={[styles.actionButton, allDone && styles.actionButtonDisabled]}
         disabled={allDone}
         onPress={() => router.push(`/timer/${task.id}`)}
+        accessibilityRole="button"
+        accessibilityState={{ disabled: allDone }}
+        accessibilityLabel={allDone ? "All steps done" : "Start timer"}
       >
         <TerminalText variant={allDone ? "muted" : "bright"}>
           {allDone ? "all steps done" : "> start_timer"}
@@ -70,7 +78,12 @@ export default function StepsScreen() {
       </Pressable>
 
       {allDone && (
-        <Pressable style={styles.ritualButton} onPress={() => router.push("/ritual")}>
+        <Pressable
+          style={styles.ritualButton}
+          onPress={() => router.push("/ritual")}
+          accessibilityRole="button"
+          accessibilityLabel="Complete reset ritual"
+        >
           <TerminalText variant="accent">{"> "}complete_reset</TerminalText>
         </Pressable>
       )}

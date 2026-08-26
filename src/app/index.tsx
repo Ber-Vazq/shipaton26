@@ -54,7 +54,13 @@ export default function Home() {
         <TerminalText variant="muted">momentum: {session.momentum}</TerminalText>
       </View>
 
-      <Pressable style={styles.randomButton} onPress={handleRandomPick} hitSlop={8}>
+      <Pressable
+        style={styles.randomButton}
+        onPress={handleRandomPick}
+        hitSlop={8}
+        accessibilityRole="button"
+        accessibilityLabel="Pick a random open task and start it"
+      >
         <TerminalText variant="bright" style={styles.randomLabel}>
           {"> "}pick_something<BlinkingCursor />
         </TerminalText>
@@ -62,13 +68,22 @@ export default function Home() {
 
       <View style={styles.sectionHeader}>
         <TerminalText variant="muted">// open tasks</TerminalText>
-        <Pressable onPress={() => router.push("/new-task")} hitSlop={8}>
+        <Pressable
+          onPress={() => router.push("/new-task")}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel="Create a new task"
+        >
           <TerminalText variant="accent">{"+ "}new_task</TerminalText>
         </Pressable>
       </View>
 
       {topThree.length === 0 ? (
-        <Pressable onPress={() => router.push("/new-task")}>
+        <Pressable
+          onPress={() => router.push("/new-task")}
+          accessibilityRole="button"
+          accessibilityLabel="No tasks queued. Tap to add a task"
+        >
           <TerminalText variant="muted">nothing queued — tap to add a task</TerminalText>
         </Pressable>
       ) : (
@@ -77,7 +92,12 @@ export default function Home() {
           keyExtractor={(t) => t.id}
           contentContainerStyle={styles.list}
           renderItem={({ item, index }) => (
-            <Pressable style={styles.card} onPress={() => openTask(item)}>
+            <Pressable
+              style={styles.card}
+              onPress={() => openTask(item)}
+              accessibilityRole="button"
+              accessibilityLabel={`Open task: ${item.title}, ${Math.round(taskProgress(item) * 100)} percent complete`}
+            >
               <TerminalText variant="accent">[{index + 1}] {item.title}</TerminalText>
               <HashProgressBar progress={taskProgress(item)} />
             </Pressable>
@@ -85,17 +105,32 @@ export default function Home() {
         />
       )}
 
-      <Pressable style={styles.paywallLink} onPress={() => router.push("/paywall")}>
+      <Pressable
+        style={styles.paywallLink}
+        onPress={() => router.push("/paywall")}
+        accessibilityRole="button"
+        accessibilityLabel="View premium features"
+      >
         <TerminalText variant="muted">premium features →</TerminalText>
       </Pressable>
 
       <View style={styles.legalRow}>
-        <Pressable onPress={() => router.push("/privacy")} hitSlop={8}>
+        <Pressable
+          onPress={() => router.push("/privacy")}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel="Open privacy policy"
+        >
           <TerminalText variant="muted" style={styles.legalLink}>
             privacy policy
           </TerminalText>
         </Pressable>
-        <Pressable onPress={() => router.push("/terms")} hitSlop={8}>
+        <Pressable
+          onPress={() => router.push("/terms")}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel="Open terms of service"
+        >
           <TerminalText variant="muted" style={styles.legalLink}>
             terms of service
           </TerminalText>

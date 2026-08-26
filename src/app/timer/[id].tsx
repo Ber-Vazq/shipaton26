@@ -123,11 +123,20 @@ export default function TimerScreen() {
 
   return (
     <View style={styles.screen}>
-      <Pressable onPress={() => router.back()} hitSlop={8}>
+      <Pressable
+        onPress={() => router.back()}
+        hitSlop={8}
+        accessibilityRole="button"
+        accessibilityLabel="Go back"
+      >
         <TerminalText variant="muted">{"< back"}</TerminalText>
       </Pressable>
 
-      <View style={styles.timerWrap}>
+      <View
+        style={styles.timerWrap}
+        accessible
+        accessibilityLabel={`${formatTime(session.remainingSeconds)} remaining`}
+      >
         <TerminalText variant="timer">{formatTime(session.remainingSeconds)}</TerminalText>
       </View>
 
@@ -135,17 +144,32 @@ export default function TimerScreen() {
 
       {session.timerState === "idle" && (
         <View style={styles.durationRow}>
-          <Pressable onPress={() => adjustDuration(-STEP_SECONDS)} style={styles.durationButton}>
+          <Pressable
+            onPress={() => adjustDuration(-STEP_SECONDS)}
+            style={styles.durationButton}
+            accessibilityRole="button"
+            accessibilityLabel="Decrease timer duration by 1 minute"
+          >
             <TerminalText variant="accent">[-]</TerminalText>
           </Pressable>
           <TerminalText variant="body">{formatTime(session.timerSeconds)} duration</TerminalText>
-          <Pressable onPress={() => adjustDuration(STEP_SECONDS)} style={styles.durationButton}>
+          <Pressable
+            onPress={() => adjustDuration(STEP_SECONDS)}
+            style={styles.durationButton}
+            accessibilityRole="button"
+            accessibilityLabel="Increase timer duration by 1 minute"
+          >
             <TerminalText variant="accent">[+]</TerminalText>
           </Pressable>
         </View>
       )}
 
-      <Pressable style={styles.actionButton} onPress={handlePrimaryAction}>
+      <Pressable
+        style={styles.actionButton}
+        onPress={handlePrimaryAction}
+        accessibilityRole="button"
+        accessibilityLabel={primaryLabel.replace(/^>\s*/, "")}
+      >
         <TerminalText variant="bright">{primaryLabel}</TerminalText>
       </Pressable>
 
@@ -153,6 +177,8 @@ export default function TimerScreen() {
         <Pressable
           style={styles.resetButton}
           onPress={() => setSession((prev) => resetTimer(prev))}
+          accessibilityRole="button"
+          accessibilityLabel="Reset timer"
         >
           <TerminalText variant="muted">reset</TerminalText>
         </Pressable>

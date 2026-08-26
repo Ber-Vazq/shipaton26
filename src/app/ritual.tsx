@@ -50,7 +50,12 @@ export default function RitualScreen() {
         </TerminalText>
       )}
 
-      <Pressable style={styles.button} onPress={() => router.replace("/")}>
+      <Pressable
+        style={styles.button}
+        onPress={() => router.replace("/")}
+        accessibilityRole="button"
+        accessibilityLabel="Return to task board"
+      >
         <TerminalText variant="bright">{"> "}back_to_board</TerminalText>
       </Pressable>
     </View>

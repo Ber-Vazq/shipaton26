@@ -6,10 +6,11 @@ import { TerminalText } from "../ui/components/TerminalText";
 import { usePurchases } from "../state/PurchasesContext";
 import { restorePurchases } from "../revenuecat/premiumGate";
 import { presentCustomerCenter, presentPaywall } from "../revenuecat/paywallUI";
+import { FREE_TASK_LIMIT } from "../model/types";
 
 const FEATURES = [
   "extra ritual sounds + animations",
-  "unlimited tasks (free tier caps at 10)",
+  `unlimited tasks (free tier caps at ${FREE_TASK_LIMIT})`,
   "custom accent colors",
   "support an indie dev directly",
 ];
@@ -69,7 +70,12 @@ export default function PaywallScreen() {
 
   return (
     <View style={styles.screen}>
-      <Pressable onPress={() => router.back()} hitSlop={8}>
+      <Pressable
+        onPress={() => router.back()}
+        hitSlop={8}
+        accessibilityRole="button"
+        accessibilityLabel="Go back"
+      >
         <TerminalText variant="muted">{"< back"}</TerminalText>
       </Pressable>
 
@@ -88,7 +94,14 @@ export default function PaywallScreen() {
               real device build to manage or cancel.
             </TerminalText>
           ) : (
-            <Pressable style={styles.subscribeButton} onPress={handleManage} disabled={busy}>
+            <Pressable
+              style={styles.subscribeButton}
+              onPress={handleManage}
+              disabled={busy}
+              accessibilityRole="button"
+              accessibilityState={{ disabled: busy, busy }}
+              accessibilityLabel="Manage subscription"
+            >
               <TerminalText variant="bright">
                 {busy ? "opening_" : "> manage_subscription"}
               </TerminalText>
@@ -124,13 +137,27 @@ export default function PaywallScreen() {
             </View>
           ) : (
             <>
-              <Pressable style={styles.subscribeButton} onPress={handleUnlock} disabled={busy}>
+              <Pressable
+                style={styles.subscribeButton}
+                onPress={handleUnlock}
+                disabled={busy}
+                accessibilityRole="button"
+                accessibilityState={{ disabled: busy, busy }}
+                accessibilityLabel="Unlock premium"
+              >
                 <TerminalText variant="bright">
                   {busy ? "processing_" : "> unlock_premium"}
                 </TerminalText>
               </Pressable>
 
-              <Pressable style={styles.restoreButton} onPress={handleRestore} disabled={busy}>
+              <Pressable
+                style={styles.restoreButton}
+                onPress={handleRestore}
+                disabled={busy}
+                accessibilityRole="button"
+                accessibilityState={{ disabled: busy, busy }}
+                accessibilityLabel="Restore purchases"
+              >
                 <TerminalText variant="muted">restore purchases</TerminalText>
               </Pressable>
             </>
@@ -139,12 +166,22 @@ export default function PaywallScreen() {
       )}
 
       <View style={styles.legalRow}>
-        <Pressable onPress={() => router.push("/privacy")} hitSlop={8}>
+        <Pressable
+          onPress={() => router.push("/privacy")}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel="Open privacy policy"
+        >
           <TerminalText variant="muted" style={styles.legalLink}>
             privacy policy
           </TerminalText>
         </Pressable>
-        <Pressable onPress={() => router.push("/terms")} hitSlop={8}>
+        <Pressable
+          onPress={() => router.push("/terms")}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel="Open terms of service"
+        >
           <TerminalText variant="muted" style={styles.legalLink}>
             terms of service
           </TerminalText>

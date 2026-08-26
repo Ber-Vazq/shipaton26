@@ -17,7 +17,14 @@ export function AsciiCheckbox({ label, done, onToggle }: Props) {
   };
 
   return (
-    <Pressable onPress={handlePress} style={styles.row} hitSlop={8}>
+    <Pressable
+      onPress={handlePress}
+      style={styles.row}
+      hitSlop={8}
+      accessibilityRole="checkbox"
+      accessibilityState={{ checked: done }}
+      accessibilityLabel={label}
+    >
       <View style={styles.checkboxWrap}>
         <TerminalText variant={done ? "accent" : "body"}>
           {TERMINAL.checkbox(done)}

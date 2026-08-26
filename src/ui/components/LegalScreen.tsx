@@ -16,7 +16,12 @@ export function LegalScreen({ title, effectiveDate, sections }: Props) {
 
   return (
     <View style={styles.screen}>
-      <Pressable onPress={() => router.back()} hitSlop={8}>
+      <Pressable
+        onPress={() => router.back()}
+        hitSlop={8}
+        accessibilityRole="button"
+        accessibilityLabel="Go back"
+      >
         <TerminalText variant="muted">{"< back"}</TerminalText>
       </Pressable>
 

@@ -1,3 +1,7 @@
+/** Max total tasks a non-pro user can have. Must match the paywall copy
+ * in src/app/paywall.tsx (FEATURES) and is enforced in src/app/new-task.tsx. */
+export const FREE_TASK_LIMIT = 10;
+
 export type Step = {
   id: string;
   label: string;
